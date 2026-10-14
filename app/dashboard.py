@@ -2,7 +2,9 @@
 STATUS: IMPLEMENTED"""
 from __future__ import annotations
 
+import copy
 import sys
+import textwrap
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # allow `streamlit run app/dashboard.py`
@@ -18,6 +20,20 @@ st.title("QICAS — quantum-inspired, verifiable, carbon-aware scheduling")
 st.caption("Case-study demo: DAG workflows placed across 4 cloud regions; solvers compete; a smart contract "
            "verifies every schedule and certifies net carbon savings.")
 
+with st.expander("About / Papers"):
+    st.markdown(textwrap.dedent("""
+                - **Carbon-aware scheduling:** Radovanović et al., *Carbon-Aware Computing for Datacenters* (2023).
+                    The demo models carbon-weighted placement in `core/scoring.py`, with region data in `config/demo.yaml`
+                    "and an on-chain baseline in `CarbonScheduleMarket.sol`.
+                - **Blockchain-verified scheduling:** *Blockchain-assisted smart grid scheduling using energy-efficient
+                    swarm and deep learning models* (2026). The commit-reveal competition, on-chain re-scoring, slashing,
+                    "and Merkle proofs are implemented in `chain/contracts/CarbonScheduleMarket.sol` and `chain/client.py`.
+                - **Quantum-inspired scheduling:** Hammouda et al., *A quantum-driven multi-objective scheduler for
+                    scalable task orchestration in fog-based cyber-physical-social systems* (2026). This demo implements
+                    simulated quantum annealing in `core/solvers/sqa.py`; it is a classical simulation, compared with
+                    "classical greedy and simulated annealing in `demo/pipeline.py`.
+                """))
+
 cfg = load_config(Path(__file__).resolve().parents[1] / "config" / "demo.yaml")
 with st.sidebar:
     st.header("Settings")
@@ -31,6 +47,7 @@ with st.sidebar:
     if cfg["chain"]["mode"] == "rpc":
         cfg["chain"]["rpc_url"] = st.text_input("RPC URL", cfg["chain"]["rpc_url"])
     go = st.button("▶ Run full demo", type="primary", width="stretch")
+    compare_weights = st.button("Compare weights", width="stretch")
 
 if go:
     logs: list[str] = []
@@ -45,6 +62,34 @@ if go:
         except Exception as exc:  # show the error instead of a blank page
             status.update(label=f"Failed: {exc}", state="error")
             raise
+
+if compare_weights:
+    presets = [
+        ("Carbon priority (1:1)", {"carbon": 1, "cost": 1}),
+        ("Balanced (1:5)", {"carbon": 1, "cost": 5}),
+        ("Cost priority (1:20)", {"carbon": 1, "cost": 20}),
+    ]
+    rows = []
+    with st.spinner("Running three fresh in-memory demos…"):
+        for label, weights in presets:
+            compare_cfg = copy.deepcopy(cfg)
+            compare_cfg["chain"]["mode"] = "memory"
+            compare_cfg["weights"] = weights
+            result = run(compare_cfg, log=lambda _: None)
+            winner = result["final"]["winner"]
+            winner_result = result["offchain"][winner]
+            rows.append({
+                "preset": label,
+                "winner": winner,
+                "carbon_g": result["final"]["best_carbon_g"],
+                "cost_usd": winner_result["cost_usd"],
+            })
+    st.session_state["weight_comparison"] = rows
+
+comparison = st.session_state.get("weight_comparison")
+if comparison:
+    st.subheader("Weight comparison")
+    st.dataframe(pd.DataFrame(comparison), hide_index=True, width="stretch")
 
 out = st.session_state.get("out")
 if not out:

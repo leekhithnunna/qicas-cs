@@ -171,6 +171,21 @@ The units are chosen so that products need **no rounding**:
 replace them with a frozen hour from the **Electricity Maps data portal** (free historical CSVs, ODbL
 licence) and real day-ahead prices, and state the date and hour you used. Only `config/demo.yaml` needs to change.
 
+To prepare a pasteable `regions:` block from one Electricity Maps CSV per region, run this from the repository
+root, replacing the sample paths with your downloaded CSVs:
+
+```powershell
+python scripts/load_em_snapshot.py --hour 2026-10-14T12:00:00Z `
+   --region "eu-north-1 (Stockholm)=data/stockholm.csv" `
+   --region "eu-west-1 (Ireland)=data/ireland.csv" `
+   --region "us-east-1 (Virginia)=data/virginia.csv" `
+   --region "ap-south-1 (Mumbai)=data/mumbai.csv"
+```
+
+The loader matches the exact UTC hour, recognizes common portal timestamp and carbon-intensity headers, rounds
+intensity to the nearest whole g CO₂e/kWh, and preserves each region's configured price and capacity. Replace
+the existing `regions:` block with its output; the default config is not changed automatically.
+
 ---
 
 ## 6. Algorithms (what each solver does)
