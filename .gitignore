@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+results/
+chain/hardhat/node_modules/
+chain/hardhat/package-lock.json
+chain/hardhat/cache/
+chain/hardhat/artifacts/

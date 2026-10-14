@@ -1,0 +1,44 @@
+# ---------------------------------------------------------------------------
+# QICAS case-study demo configuration
+# Region carbon intensity / price values are ILLUSTRATIVE (rounded, order-of-magnitude typical values).
+# For the report, replace them with a frozen snapshot from the Electricity Maps data portal
+# (https://www.electricitymaps.com/data-portal) and real day-ahead prices, and cite the date/hour.
+# ---------------------------------------------------------------------------
+seed: 7
+workflows: 8
+tasks_per_workflow: [3, 6]          # keep max <= 7 (market solves each workflow exactly)
+cpu_range: [1, 4]                    # cores per task
+duration_h_range: [0.5, 3.0]
+watts_per_core: 12                   # simple power model (document your source)
+volume_mb_lognormal: [6.0, 1.0]      # data per DAG edge: median ~400 MB
+
+regions:
+  - {name: eu-north-1 (Stockholm), ci_g_per_kwh: 40,  price_uusd_per_kwh: 60000,  capacity_share: 0.25}
+  - {name: eu-west-1 (Ireland),    ci_g_per_kwh: 330, price_uusd_per_kwh: 120000, capacity_share: 0.40}
+  - {name: us-east-1 (Virginia),   ci_g_per_kwh: 380, price_uusd_per_kwh: 55000,  capacity_share: 0.45}
+  - {name: ap-south-1 (Mumbai),    ci_g_per_kwh: 680, price_uusd_per_kwh: 50000,  capacity_share: 0.45}
+
+network:
+  energy_mwh_per_mb: 30              # ~0.03 kWh/GB; literature varies widely -> sensitivity parameter
+  egress_nusd_per_mb: 20000          # ~0.02 USD/GB inter-region transfer
+
+weights:                             # objective = carbon*[µg] + cost*[nUSD]
+  carbon: 1
+  cost: 1
+
+solvers:
+  greedy: {}
+  sa:  {sweeps: 400, t0: 2.0, t_end: 0.01}
+  sqa: {replicas: 12, sweeps: 150, T: 0.05, gamma0: 3.0, gamma_end: 0.01}
+
+market:
+  rounds: 25
+  step0: 1.0
+
+chain:
+  mode: memory                       # memory = in-process Ethereum (py-evm); rpc = Hardhat/Ganache node
+  rpc_url: http://127.0.0.1:8545
+  stake_wei: 1000000000000000000     # 1 ETH test stake per commitment
+  # Blockchain overhead model (sensitivity parameters, NOT measured values):
+  energy_wh_per_million_gas: 0.5
+  chain_ci_g_per_kwh: 400

@@ -1,0 +1,7 @@
+{
+  "name": "qicas-casestudy-node",
+  "private": true,
+  "description": "Local Ethereum node for rpc mode (Hardhat Network). The contract is deployed by Python from chain/build.",
+  "scripts": { "node": "hardhat node" },
+  "devDependencies": { "hardhat": "2.22.17" }
+}

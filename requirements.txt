@@ -1,0 +1,8 @@
+# Tested with Python 3.12 (3.10-3.12 supported). Versions tested: web3 8.0.0, eth-tester 0.14.0b1, py-evm 0.12.1b1
+web3[tester]>=7.0,<9        # includes eth-tester + py-evm for the in-memory chain
+pycryptodome>=3.19          # keccak256
+pyyaml>=6.0
+pandas>=2.0
+streamlit>=1.46             # dashboard (uses width="stretch")
+matplotlib>=3.7             # report figures
+pytest>=7.0
