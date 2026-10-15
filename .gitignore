@@ -9,6 +9,7 @@ __pycache__/
 
 # Secrets (commit .env.example, never .env)
 .env
+.streamlit/secrets.toml
 
 # Optional Hardhat node (npm install output)
 chain/hardhat/node_modules/

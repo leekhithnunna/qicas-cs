@@ -35,11 +35,17 @@ Base: commit `8e394fc` from the team zip. No scoring, contract, solver or config
 | `scripts/setup.sh` | Same for macOS/Linux |
 | `scripts/run_demo.ps1` | Rewritten: cd to root; tests + demo + figures with the venv Python (no longer launches the dashboard) |
 | `scripts/run_demo.sh` | Same for macOS/Linux |
-| `.gitignore` | Stopped ignoring `results/`; added `venv/`, `.mypy_cache/`, `.ruff_cache/`, `.env`, OS junk, `*.log`, `*.tmp`, `~$*` |
-| `README.md` | New quick start (prereqs, uv, long paths, scripts), env-var table, expected-results table, updated folder tree, troubleshooting rows |
+| `.gitignore` | Stopped ignoring `results/`; added `venv/`, `.mypy_cache/`, `.ruff_cache/`, `.env`, `.streamlit/secrets.toml`, OS junk, `*.log`, `*.tmp`, `~$*`. Kept this version over the GitHub template `.gitignore` when merging `origin/main` |
+| `README.md` | Kept over the GitHub placeholder (`# qicas-cs`) when merging `origin/main`. New quick start (prereqs, uv, long paths, scripts), env-var table, expected-results table, updated folder tree, troubleshooting rows |
 | `RUN_GUIDE.md` | Prerequisites, Windows + macOS/Linux setup, env vars, expected results incl. gas variance note |
 | `requirements.txt` | **Not modified** — all pins installed cleanly on Python 3.12 |
 | `config/demo.yaml` | **Not modified** |
+
+## Merged from the GitHub repo
+
+| Path | Note |
+|---|---|
+| `LICENSE` | MIT licence from the repo's initial commit (`f9785b4`), merged with `--allow-unrelated-histories` |
 
 ## Deleted
 

@@ -160,6 +160,7 @@ Full details and the reading template: `docs/CASE_STUDY_PAPERS.md`.
 qicas-cs/
 ├── README.md                      ← this file (system map + how to run)
 ├── RUN_GUIDE.md                   ← step-by-step run guide + 5-minute presentation script
+├── LICENSE                        ← MIT
 ├── CHANGES.md                     ← manifest of files created/modified/deleted during the portable-setup pass
 ├── AGENTS.md, CLAUDE.md, .github/copilot-instructions.md   ← rules AI assistants read automatically
 ├── requirements.txt
