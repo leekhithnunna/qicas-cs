@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import yaml
 
 from core import merkle
@@ -6,7 +8,7 @@ from core.market import run_market
 from core.scoring import evaluate, round_robin_baseline
 from core.solvers import SOLVERS
 
-cfg = yaml.safe_load(open("config/demo.yaml"))
+cfg = yaml.safe_load(open(Path(__file__).resolve().parents[1] / "config" / "demo.yaml"))
 
 
 def test_solvers_feasible_and_beat_baseline():

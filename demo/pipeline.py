@@ -24,11 +24,12 @@ from core.instance import Instance, generate_instance
 from core.market import run_market
 from core.scoring import evaluate, round_robin_baseline
 from core.solvers import KIND, SOLVERS
+from demo.paths import CONFIG, RESULTS_JSON
 
 Log = Callable[[str], None]
 
 
-def load_config(path: str | Path = "config/demo.yaml") -> dict[str, Any]:
+def load_config(path: str | Path = CONFIG) -> dict[str, Any]:
     return yaml.safe_load(Path(path).read_text())
 
 
@@ -178,7 +179,7 @@ def _row(ev, kind: str, t: float) -> dict[str, Any]:
             "feasible": ev.feasible, "kind": kind, "time_s": t}
 
 
-def save(out: dict[str, Any], path: str | Path = "results/demo_run.json") -> None:
+def save(out: dict[str, Any], path: str | Path = RESULTS_JSON) -> None:
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     clean = {k: v for k, v in out.items() if not k.startswith("_")}
     Path(path).write_text(json.dumps(clean, indent=2, default=str))

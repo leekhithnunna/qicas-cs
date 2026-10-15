@@ -13,6 +13,7 @@ import pandas as pd
 import streamlit as st
 
 from core import merkle
+from demo.paths import CONFIG
 from demo.pipeline import load_config, run, save
 
 st.set_page_config(page_title="QICAS case-study demo", layout="wide")
@@ -34,7 +35,7 @@ with st.expander("About / Papers"):
                     "classical greedy and simulated annealing in `demo/pipeline.py`.
                 """))
 
-cfg = load_config(Path(__file__).resolve().parents[1] / "config" / "demo.yaml")
+cfg = load_config(CONFIG)
 with st.sidebar:
     st.header("Settings")
     cfg["seed"] = st.number_input("Seed", 0, 10_000, int(cfg["seed"]))

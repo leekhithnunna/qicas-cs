@@ -12,6 +12,9 @@ from typing import Any
 
 import yaml
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # allow running from any directory
+from demo.paths import CONFIG  # noqa: E402
+
 
 TIMESTAMP_COLUMNS = ("datetimeutc", "datetime", "timestamputc", "timestamp", "timeutc", "time")
 INTENSITY_COLUMNS = (
@@ -118,7 +121,7 @@ def main() -> int:
     parser.add_argument("--hour", required=True, help="UTC hour, e.g. 2026-10-14T12:00:00Z")
     parser.add_argument("--region", required=True, action="append", type=parse_region_file,
                         metavar="NAME=CSV_PATH", help="one CSV per configured region (repeat this option)")
-    parser.add_argument("--config", type=Path, default=Path("config/demo.yaml"),
+    parser.add_argument("--config", type=Path, default=CONFIG,
                         help="config whose region names and non-carbon settings are preserved")
     args = parser.parse_args()
 

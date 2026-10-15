@@ -1,6 +1,8 @@
 """Python <-> Solidity parity: scoring, baseline, commit hash, Merkle root."""
 import random
 
+from pathlib import Path
+
 import yaml
 
 from chain.client import Chain, commit_hash, new_salt
@@ -11,7 +13,7 @@ from core.scoring import evaluate, round_robin_baseline
 
 def setup_module():
     global cfg, inst, chain, eid
-    cfg = yaml.safe_load(open("config/demo.yaml"))
+    cfg = yaml.safe_load(open(Path(__file__).resolve().parents[1] / "config" / "demo.yaml"))
     inst = generate_instance(cfg, 3)
     chain = Chain.start("memory")
     eid = chain.publish(inst)

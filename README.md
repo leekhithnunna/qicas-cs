@@ -10,26 +10,68 @@
 
 ## 0. Quick start (copy-paste)
 
+**Prerequisites:** Git and any Python ≥ 3.10 on PATH (only to bootstrap [uv](https://docs.astral.sh/uv/)).
+The project itself runs on **Python 3.12** — the EVM dependencies do not support 3.13 — and uv downloads a
+managed 3.12 automatically if you don't have it. On Windows, enable long paths once (Admin PowerShell),
+otherwise `pip` can fail on Streamlit's deeply nested files:
+`New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' -Name LongPathsEnabled -Value 1 -PropertyType DWORD -Force`
+
 **Windows (PowerShell)**
 ```powershell
-cd qicas-casestudy-demo
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1          # if blocked: Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-pip install -r requirements.txt
-python -m pytest -q                   # expect: 8 passed
-python -m demo.run_demo               # full end-to-end demo in the terminal (~10 s)
-python -m demo.make_figures           # report figures -> results/figures/
-streamlit run app/dashboard.py        # interactive dashboard in the browser
+git clone https://github.com/leekhithnunna/qicas-cs.git
+cd qicas-cs
+powershell -ExecutionPolicy Bypass -File scripts\setup.ps1          # .venv (Python 3.12) + deps + tests
+powershell -ExecutionPolicy Bypass -File scripts\run_demo.ps1       # tests + CLI demo + figures
+powershell -ExecutionPolicy Bypass -File scripts\run_dashboard.ps1  # http://localhost:8501
+```
+Manual equivalent:
+```powershell
+python -m pip install --user uv
+python -m uv venv --python 3.12 --seed .venv
+.venv\Scripts\python -m pip install -r requirements.txt
+.venv\Scripts\python -m pytest -q                   # expect: 8 passed
+.venv\Scripts\python -m demo.run_demo               # full end-to-end demo in the terminal (~10 s)
+.venv\Scripts\python -m demo.make_figures           # report figures -> results/figures/
+.venv\Scripts\python -m streamlit run app\dashboard.py
 ```
 
 **macOS / Linux**
 ```bash
-cd qicas-casestudy-demo
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-python -m pytest -q && python -m demo.run_demo && python -m demo.make_figures
-streamlit run app/dashboard.py
+git clone https://github.com/leekhithnunna/qicas-cs.git && cd qicas-cs
+bash scripts/setup.sh           # .venv (Python 3.12) + deps + tests
+bash scripts/run_demo.sh        # tests + CLI demo + figures
+bash scripts/run_dashboard.sh   # http://localhost:8501
 ```
+
+All scripts `cd` to the project root themselves, so they work from any directory. The Python entry points
+also resolve paths from the project root (`demo/paths.py`), e.g. `python C:\path\to\qicas-cs\demo\run_demo.py`.
+
+**Optional environment variables** (documented in `.env.example`; set them in your shell — `.env` is not auto-loaded):
+
+| Variable | Default | Used by |
+|---|---|---|
+| `QICAS_CONFIG` | `config/demo.yaml` | CLI demo, dashboard, `scripts/load_em_snapshot.py` |
+| `QICAS_RESULTS` | `results` | where `demo_run.json` and `figures/` are written/read |
+| `ELECTRICITYMAPS_API_KEY` | — | reserved; no code reads it yet (the loader uses CSV exports) |
+
+Relative values are resolved against the project root. CLI flags (`--config`, `--mode`, `--rpc-url`, `--seed`) still override.
+
+**Expected verified results** (seed 7, default config):
+
+| Metric | Value |
+|---|---|
+| Instance | 39 tasks, 8 workflows, 36 edges, 4 regions |
+| Baseline carbon (round-robin) | 961.8 g |
+| Winner | `dual-market`, 531.8 g |
+| Reduction | 44.7 % |
+| Certified gap | ≤ 9.92 % |
+| Chain overhead | ≈ 1.87 g |
+| Net saving / credits minted | 428.0 g / 428 |
+| Attackers | over-capacity → rejected; copycat → reverted (`HashMismatch`); no-show → not revealed, slashed |
+| Slashed | 3 ETH |
+| Merkle proof / tampered proof | True / False |
+| Total gas | ≈ 9,576,573 (varies by a few multiples of 12 gas between runs: commit salts are random, so calldata zero-byte counts differ) |
+| `pytest -q` | 8 passed |
 
 No Node.js, no Solidity compiler, no API keys are needed for the default mode: the blockchain runs
 **in memory** (a real Ethereum Virtual Machine, py-evm) and the contract is precompiled.
@@ -115,11 +157,16 @@ Full details and the reading template: `docs/CASE_STUDY_PAPERS.md`.
 ## 4. Folder and file guide
 
 ```
-qicas-casestudy-demo/
+qicas-cs/
 ├── README.md                      ← this file (system map + how to run)
-├── VSCODE_AGENT_PROMPT.md         ← prompt to paste into your VS Code AI assistant
+├── RUN_GUIDE.md                   ← step-by-step run guide + 5-minute presentation script
+├── CHANGES.md                     ← manifest of files created/modified/deleted during the portable-setup pass
 ├── AGENTS.md, CLAUDE.md, .github/copilot-instructions.md   ← rules AI assistants read automatically
 ├── requirements.txt
+├── conftest.py                    ← empty; makes pytest put the project root on sys.path
+├── .env.example                   ← documents QICAS_CONFIG, QICAS_RESULTS, ELECTRICITYMAPS_API_KEY
+├── .gitignore                     ← ignores .venv, caches, .env, Hardhat installs; keeps results/ tracked
+├── .gitattributes                 ← keeps *.sh scripts LF-only so bash runs them on every OS
 ├── config/demo.yaml               ← ALL tunable parameters (regions, workload, solvers, chain)
 ├── core/                          ← pure Python, no blockchain imports
 │   ├── hashing.py                 keccak256 (Ethereum hash) + canonical JSON
@@ -138,6 +185,7 @@ qicas-casestudy-demo/
 │   ├── client.py                  web3.py client: deploy, publish, commit, reveal, finalize, views
 │   └── hardhat/                   optional local Ethereum node for rpc mode
 ├── demo/
+│   ├── paths.py                   project-root paths + QICAS_CONFIG / QICAS_RESULTS overrides
 │   ├── pipeline.py                the 7-step end-to-end scenario (shared by CLI and dashboard)
 │   ├── run_demo.py                CLI entry point
 │   └── make_figures.py            report figures from results/demo_run.json
@@ -145,9 +193,13 @@ qicas-casestudy-demo/
 ├── docs/
 │   ├── CASE_STUDY_PAPERS.md       3 core papers + mapping + reading template + comparison table
 │   └── CASE_STUDY_REPORT_TEMPLATE.md
-├── scripts/                       setup/run helpers for PowerShell and bash
+├── scripts/
+│   ├── setup.ps1 / setup.sh       create .venv with Python 3.12 via uv, install deps, run tests
+│   ├── run_demo.ps1 / run_demo.sh tests + CLI demo + figures
+│   ├── run_dashboard.ps1 / .sh    launch the Streamlit dashboard (extra args go to streamlit)
+│   └── load_em_snapshot.py        build a regions: block from Electricity Maps CSV exports
 ├── tests/                         pytest: core logic, Python↔Solidity parity, end-to-end
-└── results/                       generated: demo_run.json, figures/ (git-ignored)
+└── results/                       committed reference run: demo_run.json + figures/fig1..fig4.png (regenerated by the demo)
 ```
 
 ---
@@ -267,7 +319,8 @@ winning schedule's carbon and cost trade off.
 ## 9. Running options
 
 ### 9.1 Default: in-memory chain
-`python -m demo.run_demo` (or `--seed 12`, `--config other.yaml`). Results go to `results/demo_run.json`.
+`python -m demo.run_demo` (or `--seed 12`, `--config other.yaml`). Results go to `results/demo_run.json`
+(or `$QICAS_RESULTS/demo_run.json`).
 
 ### 9.2 Real local node (Hardhat) — optional, needs Node.js 18+
 ```bash
@@ -291,9 +344,11 @@ Then **always** run `python -m pytest -q` (parity tests).
 ## 10. Troubleshooting
 | Symptom | Fix |
 |---|---|
-| `Activate.ps1 cannot be loaded` | `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` |
-| `pip install` fails building a package on Windows | Use Python 3.11 or 3.12 (wheels available); upgrade pip; or use rpc mode with Hardhat |
-| `ModuleNotFoundError: core` | Run commands from the project root, with `python -m ...` |
+| `Activate.ps1 cannot be loaded` / scripts blocked | `powershell -ExecutionPolicy Bypass -File scripts\<name>.ps1`, or `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` |
+| `pip install` fails with `OSError: [Errno 2] No such file or directory` (Windows) | Path > 260 chars: enable long paths (command in §0), or clone to a short path such as `C:\dev\qicas-cs` |
+| `pip install` fails building a package on Windows | Use Python 3.12 (`uv venv --python 3.12`); 3.13 is not supported by the EVM dependencies |
+| `ModuleNotFoundError: core` | Use the venv Python; from the root run `python -m ...`, from elsewhere run the file path (`python <root>\demo\run_demo.py`) |
+| OneDrive: slow installs or locked files | Pause sync or keep the project outside OneDrive |
 | Dashboard shows nothing | Press **Run full demo** in the sidebar |
 | rpc mode: `cannot connect` | Start `npx hardhat node` first; check the URL/port |
 | `repair failed` | Capacities too small: increase `capacity_share` values in `config/demo.yaml` |

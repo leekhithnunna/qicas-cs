@@ -3,14 +3,19 @@ Run after the demo:  python -m demo.make_figures"""
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # allow `python demo/make_figures.py` from anywhere
 
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
-R = json.loads(Path("results/demo_run.json").read_text())
-OUT = Path("results/figures")
+from demo.paths import FIGURES, RESULTS_JSON  # noqa: E402
+
+R = json.loads(RESULTS_JSON.read_text())
+OUT = FIGURES
 OUT.mkdir(parents=True, exist_ok=True)
 
 # 1. carbon and cost per approach

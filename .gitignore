@@ -1,9 +1,27 @@
+# Python / virtual environments (local only)
 .venv/
+venv/
 __pycache__/
 *.pyc
 .pytest_cache/
-results/
+.mypy_cache/
+.ruff_cache/
+
+# Secrets (commit .env.example, never .env)
+.env
+
+# Optional Hardhat node (npm install output)
 chain/hardhat/node_modules/
 chain/hardhat/package-lock.json
 chain/hardhat/cache/
 chain/hardhat/artifacts/
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+*.tmp
+~$*
+
+# NOTE: results/ (demo_run.json + figures) and chain/build/*.json are intentionally tracked.
